@@ -15,11 +15,18 @@ from app.pagination import Pagination
 admin_router = APIRouter(tags=["Admin App"])
 
 @admin_router.get("/admin")
-def admin_page(request:Request, db:SessionDep, user:AdminDep, page: int = Query(default=1, ge=1), limit: int = Query(default=100, le=100)):
+def admin_page(request:Request, db:SessionDep, user:AdminDep, page: int = Query(default=1, ge=1), limit: int = Query(default=100, le=100), q: str = Query(default='')):
     offset = (page - 1) * limit
 
-    count_todos = db.exec(select(func.count(Todo.id))).one()
-    todos = db.exec(select(Todo).offset(offset).limit(limit)).all()
+    db_qry = select(Todo).join(User)
+    if q:
+        db_qry = db_qry.where(
+            Todo.text.ilike(f"%{q}%") | User.username.ilike(f"%{q}%")
+        )
+    count_qry = select(func.count()).select_from(db_qry.subquery())
+    count_todos = db.exec(count_qry).one()
+
+    todos = db.exec(db_qry.offset(offset).limit(limit)).all()
     pagination = Pagination(total_count=count_todos, current_page=page, limit=limit)
 
     return templates.TemplateResponse(
@@ -29,5 +36,6 @@ def admin_page(request:Request, db:SessionDep, user:AdminDep, page: int = Query(
             "current_user": user,
             "todos": todos,
             "pagination": pagination,
+            "q":q
         }
     )
