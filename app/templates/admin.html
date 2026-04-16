@@ -2,141 +2,116 @@
 {% block title %}Admin View{% endblock %}
 {% block page %}Admin View{% endblock %}
 
-{% block link %}
-    <ul id="nav-mobile" class="right">
-        <li><a href="/stats">Stats</a></li>
-        <li><a href="/logout">Logout</a></li>
-    </ul>
+{% block link%}
+<ul id="nav-mobile" class="right">
+  <li><a href="/todo-stats">Stats</a></li>
+  <li><a href="/logout">Logout</a></li>
+</ul>
 {% endblock %}
 
 {% block styles %}
-    /* Custom styles for the admin table and search area */
-    .pagination li.active.blue a {
-        color: #fff;
-    }
-    .input-field input[type=search] {
-        display: block;
-        line-height: inherit;
-        padding-left: 10px;
-        width: calc(100% - 10px);
-    }
+
 {% endblock %}
 
-{% block content %} 
+{% block content %}
 <main class="container" style="padding-top:100px">
-    <form method="GET" action="/admin">
+
+
+  <form method="GET" action="/admin">
+    <div class="row">
+      <div class="col m10 input-field">
+        <input class="blue-text" name="q" type="search" placeholder="Search" value="{{q}}">
+      </div>
+      <div class="col m2 input-field">
         <div class="row">
-            <div class="col m10 input-field">
-                <input class="blue-text" name="q" type="search" placeholder="Search by text or username" value="{{ q }}">
-            </div>
-            
-            <div class="col m2 input-field">
-                <div class="row">
-                    <button type="submit" class="btn blue">
-                        <i class="material-icons">search</i>
-                    </button>
-                    <button type="button" onclick="window.location.href='/admin'" class="btn blue">
-                        <i class="material-icons">close</i>
-                    </button>
-                </div>
-            </div>
+          <button type="submit" class="btn blue">
+            <i class="material-icons">search</i>
+          </button>
+          <button type="button" onclick="q.value=''; this.form.submit()" class="btn blue">
+            <i class="material-icons">close</i>
+          </button>
         </div>
 
-        <div class="row">
-            <label style="margin-right: 20px;">
-                <input class="with-gap" name="done" type="radio" value="true" onchange="this.form.submit()" {{ "checked" if done=="true" }} />
-                <span>Done</span>
-            </label>
-            <label style="margin-right: 20px;">
-                <input class="with-gap" name="done" type="radio" value="false" onchange="this.form.submit()" {{ "checked" if done=="false" }} />
-                <span>Not Done</span>
-            </label>
-            <label>
-                <input class="with-gap" name="done" type="radio" value="any" onchange="this.form.submit()" {{ "checked" if done=="any" or not done }} />
-                <span>Any</span>
-            </label>
-        </div>
-    </form>
-    
-    <table class="highlight responsive-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>User</th>
-                <th>Todo Text</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        
-        <tbody>
-            {% for todo in todos %}
-            <tr>
-                <td>{{ todo.id }}</td>
-                <td><strong>{{ todo.user.username }}</strong></td>
-                <td>{{ todo.text }}</td>
-                <td>
-                    {% if todo.done %}
-                        <span class="chip green white-text">Done</span>
-                    {% else %}
-                        <span class="chip orange white-text">Pending</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="4" class="center-align">No todos found matching your criteria.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <div class="row" style="display: flex; align-items: center; justify-content: center; position: relative; margin-top: 40px;">
-        
-        <ul class="pagination" style="margin: 0;">
-            {% if pagination.has_prev %}
-            <li class="waves-effect">
-                <a href="{{ url_for('admin_page') }}?page={{ pagination.prev_num }}&limit={{ pagination.limit }}&q={{ q }}&done={{ done }}">
-                    <i class="material-icons">chevron_left</i>
-                </a>
-            </li>
-            {% else %}
-            <li class="disabled">
-                <a href="#!"><i class="material-icons">chevron_left</i></a>
-            </li>
-            {% endif %}
-
-            {% for page_num in pagination.iter_pages() %}
-                {% if page_num %}
-                    <li class="{{ 'active blue' if pagination.page == page_num else 'waves-effect' }}">
-                        <a href="{{ url_for('admin_page') }}?page={{ page_num }}&limit={{ pagination.limit }}&q={{ q }}&done={{ done }}">{{ page_num }}</a>
-                    </li>
-                {% else %}
-                    <li class="disabled"><a href="#!">...</a></li>
-                {% endif %}
-            {% endfor %}
-
-            {% if pagination.has_next %}
-            <li class="waves-effect">
-                <a href="{{ url_for('admin_page') }}?page={{ pagination.next_num }}&limit={{ pagination.limit }}&q={{ q }}&done={{ done }}">
-                    <i class="material-icons">chevron_right</i>
-                </a>
-            </li>
-            {% else %}
-            <li class="disabled">
-                <a href="#!"><i class="material-icons">chevron_right</i></a>
-            </li>
-            {% endif %}
-        </ul>
-
-        <div class="input-field" style="position: absolute; right: 0; margin: 0; width: 120px;">
-            <select id="limit-select" class="browser-default" onchange="location = this.value;">
-                {% for n in [10, 25, 50, 100] %}
-                <option value="{{ url_for('admin_page') }}?page=1&limit={{ n }}&q={{ q }}&done={{ done }}" {% if pagination.limit == n %}selected{% endif %}>
-                    {{ n }} rows
-                </option>
-                {% endfor %}
-            </select>
-        </div>
+      </div>
     </div>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Text</th>
+        <th>Done</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for todo in todos %}
+      <tr>
+        <td>{{todo.id}}</td>
+        <td>{{todo.user.username}}</td>
+        <td>{{todo.text}}</td>
+        <td>{{todo.done}}</td>
+      </tr>
+      {% endfor %}
+
+    </tbody>
+  </table>
+
+  <div class="row" style="display: flex; align-items: center; justify-content: center; position: relative;">
+
+    <ul class="pagination" style="margin: 0;">
+      {% if pagination.has_prev %}
+      <li class="waves-effect">
+        <a href="{{ url_for('admin_page') }}?page={{ pagination.prev_num }}&limit={{ pagination.limit}}&q={{ q }}">
+          <i class="material-icons">chevron_left</i>
+        </a>
+      </li>
+      {% else %}
+      <li class="disabled">
+        <a href="#!"><i class="material-icons">chevron_left</i></a>
+      </li>
+      {% endif %}
+
+      {% for page_num in pagination.iter_pages() %}
+      {% if page_num %}
+      {% if pagination.page == page_num %}
+      <li class="active blue"><a href="#!">{{ page_num }}</a></li>
+      {% else %}
+      <li class="waves-effect">
+        <a href="{{ url_for('admin_page') }}?page={{ page_num }}&limit={{ pagination.limit }}&q={{ q }}">{{ page_num }}</a>
+      </li>
+      {% endif %}
+      {% else %}
+      <li class="disabled"><a href="#!">...</a></li>
+      {% endif %}
+      {% endfor %}
+
+      {% if pagination.has_next %}
+      <li class="waves-effect">
+        <a href="{{ url_for('admin_page') }}?page={{ pagination.next_num }}&limit={{ pagination.limit }}&q={{ q }}">
+          <i class="material-icons">chevron_right</i>
+        </a>
+      </li>
+      {% else %}
+      <li class="disabled">
+        <a href="#!"><i class="material-icons">chevron_right</i></a>
+      </li>
+      {% endif %}
+    </ul>
+
+    <div class="input-field" style="position: absolute; right: 25px; margin: 0; ">
+      <select id="limit-select" onchange="location = this.value;">
+        {% for n in [10, 25, 50, 100] %}
+        <option value="{{ url_for('admin_page') }}?page=1&limit={{ n }}&q={{ q }}" {% if pagination.limit==n %}selected{% endif
+          %}>
+          {{ n }} rows
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
 </main>
 {% endblock %}
